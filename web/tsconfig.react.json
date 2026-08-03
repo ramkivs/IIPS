@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.json" ,
   "compilerOptions": {
     "jsx": "react-jsx",
     "strict": true,
@@ -9,4 +9,4 @@
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "vitest.config.ts"]
-}
+} 
