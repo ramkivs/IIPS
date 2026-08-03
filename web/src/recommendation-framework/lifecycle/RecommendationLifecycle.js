@@ -1,0 +1,4 @@
+import { RecommendationLifecycleState } from '../contracts/index.js';
+const allowed={ Draft:['Registered','Failed'], Registered:['Validated','Failed'], Validated:['Active','Failed'], Active:['Deprecated','Retired','Failed'], Deprecated:['Retired'], Retired:[], Failed:[] };
+export class RecommendationLifecycleManager { constructor(){ this.states=new Map(); } initialize(id){ this.states.set(id,RecommendationLifecycleState.Draft); return this.status(id); } transition(id,to){ const from=this.states.get(id); if(!from) throw new Error(`Unknown recommendation lifecycle: ${id}`); if(!(allowed[from]||[]).includes(to)){ this.states.set(id,RecommendationLifecycleState.Failed); throw new Error(`Invalid recommendation transition: ${from} -> ${to}`); } this.states.set(id,to); return this.status(id); } status(id){ return Object.freeze({ recommendationModelId:id, state:this.states.get(id)||null }); }}
+export const RecommendationLifecyclePolicy=Object.freeze({});

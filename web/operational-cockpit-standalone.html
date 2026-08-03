@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IIPS Operational Cockpit MVP — Standalone</title>
+  <style>
+    :root {
+  --iips-color-background-page: #f5f7fa;
+  --iips-color-background-panel: #ffffff;
+  --iips-color-background-subtle: #f9fafc;
+  --iips-color-border-default: #d9dee7;
+  --iips-color-border-subtle: #e7ebf2;
+  --iips-color-text-primary: #1f2937;
+  --iips-color-text-secondary: #6b7280;
+  --iips-color-text-inverse: #ffffff;
+  --iips-color-status-high: #b42318;
+  --iips-color-status-medium: #b7791f;
+  --iips-color-status-low: #46566f;
+  --iips-color-status-good: #1f7a4d;
+  --iips-color-status-info: #1f5f99;
+  --iips-typography-family-sans: Inter, system-ui, sans-serif;
+  --iips-typography-family-mono: SFMono-Regular, Consolas, monospace;
+  --iips-typography-size-caption: 11px;
+  --iips-typography-size-body: 13px;
+  --iips-typography-size-heading: 16px;
+  --iips-typography-size-hero: 22px;
+  --iips-typography-weight-regular: 400;
+  --iips-typography-weight-semibold: 600;
+  --iips-typography-weight-bold: 800;
+  --iips-spacing-xs: 4;
+  --iips-spacing-sm: 8;
+  --iips-spacing-md: 16;
+  --iips-spacing-lg: 24;
+  --iips-spacing-xl: 32;
+  --iips-radius-sm: 8;
+  --iips-radius-md: 12;
+  --iips-radius-lg: 14;
+  --iips-elevation-panel: 0 8px 24px rgba(20, 33, 61, 0.08);
+  --iips-elevation-none: none;
+}
+    body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--iips-color-background-page); color:var(--iips-color-text-primary); }
+    .iips-cockpit { display:grid; grid-template-columns:220px minmax(640px,1fr) 330px; grid-template-rows:64px 1fr; gap:16px; padding:16px; min-height:100vh; box-sizing:border-box; }
+    .iips-cockpit__topbar,.iips-cockpit__nav,.iips-cockpit__main,.iips-cockpit__drawer,.iips-cockpit__governance { background:#fff; border:1px solid var(--iips-color-border-default); border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(20,33,61,.08); box-sizing:border-box; }
+    .iips-cockpit__topbar { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; }
+    .iips-cockpit__nav { grid-column:1; grid-row:2; }
+    .iips-cockpit__main { grid-column:2; grid-row:2; display:grid; gap:16px; align-content:start; }
+    .iips-cockpit__drawer { grid-column:3; grid-row:2; align-self:start; }
+    .iips-cockpit__governance { grid-column:3; grid-row:2; align-self:end; margin-top:280px; }
+    .metric-group { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .metric-card { background:#f9fafc; border:1px solid #e7ebf2; border-radius:12px; padding:12px; }
+    .metric-card span { display:block; color:var(--iips-color-text-secondary); font-size:12px; text-transform:uppercase; font-weight:700; }
+    .metric-card strong { display:block; margin-top:6px; font-size:22px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e7ebf2; border-radius:12px; overflow:hidden; }
+    td { border-bottom:1px solid #e7ebf2; padding:10px; font-size:13px; }
+    tr:first-child td { color:var(--iips-color-status-high); font-weight:800; }
+    tr:last-child td { border-bottom:0; }
+    [aria-label="Coverage Ledger"], [aria-label="Active Review Queue"], [aria-label="Portfolio Health"] { background:#fff; border:1px solid #e7ebf2; border-radius:14px; padding:14px; }
+    @media (max-width: 1100px) { .iips-cockpit { grid-template-columns:1fr; grid-template-rows:auto; } .iips-cockpit__topbar,.iips-cockpit__nav,.iips-cockpit__main,.iips-cockpit__drawer,.iips-cockpit__governance { grid-column:1; grid-row:auto; margin-top:0; } .metric-group { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  </style>
+</head>
+<body>
+<section class="iips-cockpit" data-version="M4.3 Operational Views">
+  <header class="iips-cockpit__topbar" aria-label="Top Bar">
+    <strong>IIPS Operational Cockpit</strong>
+    <span>Cycle #2</span>
+  </header>
+  <nav class="iips-cockpit__nav" aria-label="Primary Navigation">
+    <span>Dashboard</span>
+  </nav>
+  <main class="iips-cockpit__main" aria-label="Operational Cockpit Main">
+    <section aria-label="Portfolio Health"><div class="metric-group"><div class="metric-card"><span>Holdings</span><strong>66</strong></div><div class="metric-card"><span>Active Reviews</span><strong>17</strong></div><div class="metric-card"><span>Coverage Items</span><strong>49</strong></div><div class="metric-card"><span>Queue Health</span><strong>Stressed</strong></div><div class="metric-card"><span>Research Debt</span><strong>High</strong></div><div class="metric-card"><span>Estimated Work</span><strong>186</strong></div></div></section>
+    <section aria-label="Active Review Queue"><table><tbody><tr data-id="review-elecon"><td>ELECON</td><td>High</td><td>Valuation Shift</td></tr><tr data-id="review-kross"><td>KROSS</td><td>High</td><td>Valuation Shift</td></tr><tr data-id="review-bharatcoal"><td>BHARATCOAL</td><td>Medium</td><td>Valuation Shift</td></tr></tbody></table></section>
+    <section aria-label="Coverage Ledger"><div>49 coverage records</div></section>
+  </main>
+  <aside class="iips-cockpit__drawer" aria-label="Research Snapshot Drawer"><div>Research Snapshot ELECON</div></aside>
+  <aside class="iips-cockpit__governance" aria-label="Governance Sidebar"><div>Operational Governance v1.0 — Normal</div></aside>
+</section>
+</body>
+</html>

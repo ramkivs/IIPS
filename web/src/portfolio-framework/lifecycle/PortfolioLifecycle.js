@@ -1,0 +1,4 @@
+import { PortfolioLifecycleState } from '../contracts/index.js';
+const allowed={ Draft:['Registered','Failed'], Registered:['Active','Failed'], Active:['Deprecated','Retired','Failed'], Deprecated:['Retired'], Retired:[], Failed:[] };
+export class DomainLifecycleManager{ transition(record,to){ return Object.freeze({ ...record, status:to, updatedAt:new Date().toISOString() }); }}
+export class PortfolioLifecycleManager{ constructor(){ this.states=new Map(); } initialize(id){ this.states.set(id,PortfolioLifecycleState.Draft); return this.status(id); } transition(id,to){ const from=this.states.get(id); if(!from) throw new Error('Unknown portfolio lifecycle'); if(!(allowed[from]||[]).includes(to)){ this.states.set(id,PortfolioLifecycleState.Failed); throw new Error(`Invalid portfolio transition: ${from} -> ${to}`); } this.states.set(id,to); return this.status(id); } status(id){ return Object.freeze({ portfolioId:id, lifecycle:this.states.get(id)||null }); }}

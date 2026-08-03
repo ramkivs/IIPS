@@ -1,0 +1,3 @@
+import { DCFExecutionAdapter } from '../execution/index.js';
+import { DCFOutputNormalizer } from '../outputs/index.js';
+export class DCFReplayAdapter { replay(snapshot){ const m=snapshot.inputs.dcfManifest; const context=new DCFExecutionAdapter().createContext({ valuationExecutionId:m.valuationExecutionId, valuationInputPackageId:m.valuationInputPackageId, dcfPluginVersion:m.dcfPluginVersion, input:m.assumptions }); const result=new DCFExecutionAdapter().calculate(context); const output=new DCFOutputNormalizer().normalize(result); return Object.freeze({ enterpriseValue:output.results.enterpriseValue, equityValue:output.results.equityValue, perShareValue:output.results.perShareValue, formulaTrace:output.diagnostics.calculationTrace }); }}

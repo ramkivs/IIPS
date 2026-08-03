@@ -1,0 +1,11 @@
+import { CapabilityOwnership } from '../../../../../packages/plugin-framework/src/index.js';
+import { createPlatformEvent } from '../../../../../packages/shared-types/src/index.js';
+import { ProductCapabilityCategory, ProductEventType } from '../contracts/index.js';
+
+export class ProductCapabilityRegistry {
+  constructor({ platformCapabilityRegistry, eventBus, diagnostics } = {}) { this.platformCapabilityRegistry=platformCapabilityRegistry; this.eventBus=eventBus; this.diagnostics=diagnostics; this.capabilities=[]; }
+  register({ manifest, capability }) { if(!manifest.capabilities.some(c=>c.capabilityId===capability.capabilityId)) throw new Error(`Undeclared product capability: ${capability.capabilityId}`); if(!Object.values(ProductCapabilityCategory).includes(capability.category)) throw new Error(`Invalid capability category: ${capability.category}`); if(this.capabilities.some(c=>c.capabilityId===capability.capabilityId && c.ownership==='exclusive')) throw new Error(`Conflicting exclusive product capability: ${capability.capabilityId}`); const record=Object.freeze({ productModuleId:manifest.productModuleId, ownership:'exclusive', ...capability }); this.capabilities.push(record); this.platformCapabilityRegistry?.register?.({ capability_id:record.capabilityId, provider_id:manifest.productModuleId, owner_type:'product-module', ownership:CapabilityOwnership.exclusive, version:manifest.version, implementation:{ category:record.category, productModuleId:manifest.productModuleId } }); this.eventBus?.publish(createPlatformEvent({ type:ProductEventType.ProductCapabilityRegistered, source:'ProductCapabilityRegistry', payload:{ productModuleId:manifest.productModuleId, capabilityId:record.capabilityId } })); this.diagnostics?.record?.('product.capability.registered', { productModuleId:manifest.productModuleId, capabilityId:record.capabilityId }); return record; }
+  byModule(productModuleId){ return Object.freeze(this.capabilities.filter(c=>c.productModuleId===productModuleId)); }
+  byCategory(category){ return Object.freeze(this.capabilities.filter(c=>c.category===category)); }
+  resolve(capabilityId){ return this.capabilities.find(c=>c.capabilityId===capabilityId)||null; }
+}

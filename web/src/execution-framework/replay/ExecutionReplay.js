@@ -1,0 +1,1 @@
+export class ExecutionReplayAdapter{ replay(snapshot){ const m=snapshot.inputs.executionManifest; return Object.freeze({ executionArtifactId:m.executionArtifactId, executionPlanId:m.executionPlanId, executionIntentId:m.executionIntentId, portfolioChangeProposalId:m.portfolioChangeProposalId, instructions:m.instructions, policies:m.policies, constraints:m.constraints }); }}

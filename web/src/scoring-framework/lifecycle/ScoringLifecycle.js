@@ -1,0 +1,4 @@
+import { ScoringLifecycleState } from '../contracts/index.js';
+const allowed={ Draft:['Registered','Failed'], Registered:['Validated','Failed'], Validated:['Active','Failed'], Active:['Deprecated','Retired','Failed'], Deprecated:['Retired'], Retired:[], Failed:[] };
+export class ScoringLifecycleManager { constructor(){ this.states=new Map(); } initialize(id){ this.states.set(id,ScoringLifecycleState.Draft); return this.status(id); } transition(id,to){ const from=this.states.get(id); if(!from) throw new Error(`Unknown scoring lifecycle: ${id}`); if(!(allowed[from]||[]).includes(to)){ this.states.set(id,ScoringLifecycleState.Failed); throw new Error(`Invalid scoring transition: ${from} -> ${to}`); } this.states.set(id,to); return this.status(id); } status(id){ return Object.freeze({ scoringModelId:id, state:this.states.get(id)||null }); }}
+export const ScoringLifecyclePolicy=Object.freeze({});

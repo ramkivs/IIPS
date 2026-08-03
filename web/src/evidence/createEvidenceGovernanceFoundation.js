@@ -1,0 +1,44 @@
+import { FlagStatus } from '../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../packages/snapshot-engine/src/index.js';
+import { EVIDENCE_FEATURE_FLAG } from './contracts/index.js';
+import { EvidenceRegistry, EvidenceRecordFactory } from './registry/index.js';
+import { EvidenceCertificationService } from './certification/index.js';
+import { EvidenceReviewRegistry } from './review/index.js';
+import { EvidenceCorrectionService, EvidenceVersionDiff, EvidenceImmutableStore } from './versioning/index.js';
+import { EvidenceSnapshotAdapter, EvidenceReplayAdapter } from './snapshots/index.js';
+import { EvidenceTraceabilityGraph } from './traceability/index.js';
+import { EvidencePermissionRegistry, EvidencePermissionGate, registerDefaultEvidencePermissions } from './permissions/index.js';
+import { EvidenceContributionRegistry } from './contributions/index.js';
+import { EvidenceProjectionRegistry } from './projections/index.js';
+import { EvidenceDiagnostics } from './diagnostics/index.js';
+import { EvidenceIntegrationHarness } from './testing/index.js';
+
+export function createEvidenceGovernanceFoundation({ app } = {}) {
+  const container=app.container;
+  const flags=container.resolve('featureFlagRegistry');
+  if(!flags.get(EVIDENCE_FEATURE_FLAG)) flags.register({ flag_id:EVIDENCE_FEATURE_FLAG, default_enabled:true, owner:'evidence-governance', status:FlagStatus.active });
+  const diagnostics=new EvidenceDiagnostics({ diagnostics:container.resolve('diagnostics') });
+  const evidenceRegistry=new EvidenceRegistry({ diagnostics });
+  const evidenceFactory=new EvidenceRecordFactory();
+  const certificationService=new EvidenceCertificationService({ registry:evidenceRegistry, diagnostics });
+  const reviewRegistry=new EvidenceReviewRegistry();
+  const correctionService=new EvidenceCorrectionService({ registry:evidenceRegistry });
+  const versionDiff=new EvidenceVersionDiff();
+  const immutableStore=new EvidenceImmutableStore();
+  const snapshotStore=new InMemorySnapshotStore();
+  const snapshotAdapter=new EvidenceSnapshotAdapter({ snapshotStore });
+  const replayAdapter=new EvidenceReplayAdapter();
+  const traceabilityGraph=new EvidenceTraceabilityGraph({ diagnostics });
+  const permissionRegistry=registerDefaultEvidencePermissions(new EvidencePermissionRegistry());
+  const permissionGate=new EvidencePermissionGate({ registry:permissionRegistry });
+  const contributionRegistry=new EvidenceContributionRegistry({ featureFlagRegistry:flags, permissionGate });
+  contributionRegistry.register({ contributionId:'create-evidence-record', permission:'createEvidenceRecord' });
+  contributionRegistry.register({ contributionId:'submit-evidence-review', permission:'submitEvidenceReview' });
+  contributionRegistry.register({ contributionId:'certify-evidence', permission:'certifyEvidence' });
+  const projectionRegistry=new EvidenceProjectionRegistry().registerDefaults();
+  const runtime=Object.freeze({ diagnostics, evidenceRegistry, evidenceFactory, certificationService, reviewRegistry, correctionService, versionDiff, immutableStore, snapshotStore, snapshotAdapter, replayAdapter, traceabilityGraph, permissionRegistry, permissionGate, contributionRegistry, projectionRegistry });
+  const evidenceTestHarness=new EvidenceIntegrationHarness({ runtime });
+  const full=Object.freeze({ ...runtime, evidenceTestHarness });
+  for(const [key,value] of Object.entries(full)) if(!container.has(key)) container.register(key,value);
+  return full;
+}

@@ -1,0 +1,3 @@
+import { createMethodologyAuditIdentity, assertNoInvestmentAnalysis } from '../contracts/index.js';
+export class MethodologyAuditTrail { constructor(){ this.records=[]; } record(input){ const audit=createMethodologyAuditIdentity(input); const record=Object.freeze({ ...audit, action:input.action||'methodology-audit', payload:input.payload||{} }); assertNoInvestmentAnalysis(record,'Methodology audit'); this.records.push(record); return record; } byExecution(executionId){ return Object.freeze(this.records.filter(r=>r.executionId===executionId)); }}
+export const MethodologyAuditRecord = Object.freeze({});

@@ -1,0 +1,5 @@
+import { DCFPermissionAction } from '../contracts/index.js';
+const forbidden=new Set(['recommendInvestment','assignRating','scoreCompany','approveInvestment','rebalancePortfolio']);
+export class DCFPermissionRegistry { constructor(){ this.permissions=new Map(); } register({ action, effect='allow' }){ if(forbidden.has(action)) throw new Error(`Forbidden DCF permission: ${action}`); if(!Object.values(DCFPermissionAction).includes(action)) throw new Error(`Unsupported DCF permission: ${action}`); if(this.permissions.has(action)) throw new Error(`Permission exists: ${action}`); const p=Object.freeze({ action, effect }); this.permissions.set(action,p); return p; } get(action){ return this.permissions.get(action)||null; }}
+export class DCFPermissionGate { constructor({ registry }){ this.registry=registry; } require(action){ const p=this.registry.get(action); if(!p||p.effect!=='allow') throw new Error(`DCF permission denied: ${action}`); return true; }}
+export function registerDefaultDCFPermissions(registry){ for(const action of Object.values(DCFPermissionAction)) if(!registry.get(action)) registry.register({ action }); return registry; }

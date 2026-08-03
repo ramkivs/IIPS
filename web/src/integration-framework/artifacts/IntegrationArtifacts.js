@@ -1,0 +1,5 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { INTEGRATION_SCHEMA_VERSION, IntegrationArtifactStatus, assertNoLiveIntegration } from '../contracts/index.js';
+import { IntegrationArtifactValidator } from '../schema/index.js';
+export class IntegrationArtifactRegistry{ constructor(){ this.items=new Map(); this.validator=new IntegrationArtifactValidator(); } create({ provider, requestEnvelope, simulationResult, compatibility }){ const a=Object.freeze({ integrationArtifactId:createOpaqueId('IART'), integrationSchemaVersion:INTEGRATION_SCHEMA_VERSION, providerId:provider.providerId, providerVersion:provider.providerVersion, requestEnvelopeId:requestEnvelope.requestEnvelopeId, requestEnvelope, simulationResult, providerCompatibility:compatibility, status:IntegrationArtifactStatus.Simulated, liveEnablementMetadata:{}, createdAt:new Date().toISOString() }); this.validator.validate(a); this.items.set(a.integrationArtifactId,a); return a; }}
+export const IntegrationArtifact=Object.freeze({});

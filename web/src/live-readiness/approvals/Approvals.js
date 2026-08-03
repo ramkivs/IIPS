@@ -1,0 +1,5 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { LIVE_ENABLEMENT_SCHEMA_VERSION, decisionHash, assertNoLiveReadinessLeak } from '../contracts/index.js';
+export class TransmissionApprovalValidator{ validate(a){ if(!a.approvalArtifactId||!a.readinessId||!a.decisionHash) throw new Error('Invalid approval artifact'); assertNoLiveReadinessLeak(a,'approval artifact'); return true; }}
+export class TransmissionApprovalRegistry{ constructor(){ this.items=[]; this.validator=new TransmissionApprovalValidator(); } create({ readinessId, authorizationLevels }){ const base={ readinessId, authorizationLevels }; const a=Object.freeze({ approvalArtifactId:createOpaqueId('APPROV'), approvalVersion:'1.0.0', schemaVersion:LIVE_ENABLEMENT_SCHEMA_VERSION, readinessId, authorizationLevels:Object.freeze(authorizationLevels.slice()), decisionHash:decisionHash(base), status:'Approved', createdAt:new Date().toISOString() }); this.validator.validate(a); this.items.push(a); return a; }}
+export const TransmissionApprovalArtifact=Object.freeze({});

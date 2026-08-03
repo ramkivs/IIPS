@@ -1,0 +1,12 @@
+import { FeatureGate } from '../../../../../packages/feature-flags/src/index.js';
+import { createPlatformEvent } from '../../../../../packages/shared-types/src/index.js';
+import { ProductContributionType, ProductEventType } from '../contracts/index.js';
+export class ProductContributionRegistry { constructor({ featureFlagRegistry, environment='development', permissionGate, eventBus, diagnostics }={}){ this.featureGate=new FeatureGate({ registry:featureFlagRegistry, environment }); this.permissionGate=permissionGate; this.eventBus=eventBus; this.diagnostics=diagnostics; this.contributions=[]; this.failures=0; }
+  register(contribution){ try{ for(const k of ['productModuleId','contributionId','type','featureFlag','permission']) if(!contribution?.[k]) throw new Error(`contribution.${k} is required`); if(!Object.values(ProductContributionType).includes(contribution.type)) throw new Error(`Unsupported contribution type: ${contribution.type}`); const record=Object.freeze({ execute:()=>Object.freeze({ status:'placeholder' }), ...contribution }); this.contributions.push(record); this.eventBus?.publish(createPlatformEvent({ type:ProductEventType.ProductContributionRegistered, source:'ProductContributionRegistry', payload:{ productModuleId:record.productModuleId, contributionId:record.contributionId } })); return record; } catch(e){ this.failures++; throw e; }}
+  execute(contributionId,args={}){ const c=this.contributions.find(x=>x.contributionId===contributionId); if(!c) throw new Error(`Contribution not found: ${contributionId}`); if(!this.featureGate.isEnabled(c.featureFlag)) return Object.freeze({ status:'blocked', reason:'feature_disabled' }); this.permissionGate?.require?.(c.productModuleId, c.permission); return Object.freeze({ status:'executed', result:c.execute(args) }); }
+  byType(type){ return Object.freeze(this.contributions.filter(c=>c.type===type)); }
+  healthMetrics(){ return Object.freeze({ contributionRegistrationFailures:this.failures }); }}
+export const ProductCommandContribution = contribution => Object.freeze({ ...contribution, type:ProductContributionType.command });
+export const ProductNotificationContribution = contribution => Object.freeze({ ...contribution, type:ProductContributionType.notification });
+export const ProductActivityContribution = contribution => Object.freeze({ ...contribution, type:ProductContributionType.activity });
+export const ProductNavigationContribution = contribution => Object.freeze({ ...contribution, type:ProductContributionType.navigation });

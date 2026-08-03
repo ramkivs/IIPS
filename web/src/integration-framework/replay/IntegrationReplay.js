@@ -1,0 +1,1 @@
+export class IntegrationReplayAdapter{ replay(snapshot){ const m=snapshot.inputs.integrationManifest; return Object.freeze({ integrationArtifactId:m.integrationArtifactId, providerId:m.providerId, requestEnvelopeId:m.requestEnvelope.requestEnvelopeId, simulationResult:m.simulationResult }); }}

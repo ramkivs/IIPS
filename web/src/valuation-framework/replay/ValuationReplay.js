@@ -1,0 +1,1 @@
+export class ValuationReplayAdapter { replay(snapshot){ const m=snapshot.inputs.valuationManifest; return Object.freeze({ valuationModelId:m.valuationModelId, valuationModelVersion:m.valuationModelVersion, valuationExecutionId:m.valuationExecutionId, validationResult:m.validationResult, sufficiencyResult:m.sufficiencyResult, executionFingerprint:m.executionFingerprint }); }}

@@ -1,0 +1,3 @@
+import { INTEGRATION_SCHEMA_VERSION, IntegrationArtifactStatus, assertRequired, assertNoLiveIntegration } from '../contracts/index.js';
+export class IntegrationArtifactSchema { static version=INTEGRATION_SCHEMA_VERSION; }
+export class IntegrationArtifactValidator{ validate(a){ assertRequired(a,['integrationArtifactId','integrationSchemaVersion','providerId','providerVersion','requestEnvelopeId','requestEnvelope','simulationResult','status','createdAt','liveEnablementMetadata'],'integrationArtifact'); if(!Object.values(IntegrationArtifactStatus).includes(a.status)) throw new Error('Invalid integration artifact status'); assertNoLiveIntegration(a,'integration artifact'); return true; }}

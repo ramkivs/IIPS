@@ -1,0 +1,20 @@
+import { FlagStatus } from '../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../packages/snapshot-engine/src/index.js';
+import { EXECUTION_FRAMEWORK_FEATURE_FLAG } from './contracts/index.js';
+import { ExecutionIntentRegistry } from './intent/index.js';
+import { ExecutionPlanRegistry } from './plans/index.js';
+import { PortfolioChangeProposalExecutionAdapter, ExecutionInputPackage } from './inputs/index.js';
+import { ExecutionPolicyRegistry, ExecutionPolicyEvaluator } from './policies/index.js';
+import { ExecutionConstraintRegistry, ExecutionConstraintChecker } from './constraints/index.js';
+import { ExecutionStrategyRegistry } from './strategies/index.js';
+import { RoutePlanPlaceholder } from './routing/index.js';
+import { ExecutionInstructionRegistry } from './instructions/index.js';
+import { ExecutionArtifactRegistry, ExecutionArtifactVersionRegistry } from './artifacts/index.js';
+import { ExecutionAuditTrail } from './audit/index.js';
+import { ExecutionSnapshotAdapter } from './snapshots/index.js';
+import { ExecutionReplayAdapter } from './replay/index.js';
+import { ExecutionPermissionRegistry, ExecutionPermissionGate, registerDefaultExecutionPermissions } from './permissions/index.js';
+import { ExecutionDiagnostics } from './diagnostics/index.js';
+import { ExecutionProjectionRegistry } from './projections/index.js';
+import { ExecutionIntegrationHarness } from './testing/index.js';
+export function createExecutionFramework({ app }={}){ const c=app.container; const flags=c.resolve('featureFlagRegistry'); if(!flags.get(EXECUTION_FRAMEWORK_FEATURE_FLAG)) flags.register({ flag_id:EXECUTION_FRAMEWORK_FEATURE_FLAG, default_enabled:true, owner:'execution-framework', status:FlagStatus.active }); const intentRegistry=new ExecutionIntentRegistry(); const planRegistry=new ExecutionPlanRegistry(); const proposalAdapter=new PortfolioChangeProposalExecutionAdapter(); const policyRegistry=new ExecutionPolicyRegistry(); const policyEvaluator=new ExecutionPolicyEvaluator(); const constraintRegistry=new ExecutionConstraintRegistry(); const constraintChecker=new ExecutionConstraintChecker(); const strategyRegistry=new ExecutionStrategyRegistry(); const instructionRegistry=new ExecutionInstructionRegistry(); const artifactRegistry=new ExecutionArtifactRegistry(); const artifactVersionRegistry=new ExecutionArtifactVersionRegistry(); const auditTrail=new ExecutionAuditTrail(); const snapshotStore=new InMemorySnapshotStore(); const snapshotAdapter=new ExecutionSnapshotAdapter({ snapshotStore }); const replayAdapter=new ExecutionReplayAdapter(); const permissionRegistry=registerDefaultExecutionPermissions(new ExecutionPermissionRegistry()); const permissionGate=new ExecutionPermissionGate({ registry:permissionRegistry }); const diagnostics=new ExecutionDiagnostics({ diagnostics:c.resolve('diagnostics') }); const projectionRegistry=new ExecutionProjectionRegistry().registerDefaults(); const runtime=Object.freeze({ intentRegistry, planRegistry, proposalAdapter, ExecutionInputPackage, policyRegistry, policyEvaluator, constraintRegistry, constraintChecker, strategyRegistry, RoutePlanPlaceholder, instructionRegistry, artifactRegistry, artifactVersionRegistry, auditTrail, snapshotStore, snapshotAdapter, replayAdapter, permissionRegistry, permissionGate, diagnostics, projectionRegistry }); const executionTestHarness=new ExecutionIntegrationHarness({ runtime }); const full=Object.freeze({ ...runtime, executionTestHarness }); for(const [key,value] of Object.entries(full)) if(!c.has(key)) c.register(key,value); return full; }

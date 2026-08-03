@@ -1,0 +1,2 @@
+import { assertNoLiveIntegration } from '../contracts/index.js';
+export class AuthenticationContractPlaceholder{ validate(config={}){ for(const f of ['secret','token','apiKey','password','credential']) if(config[f]!==undefined) throw new Error(`Forbidden credential field: ${f}`); assertNoLiveIntegration(config,'auth placeholder'); return Object.freeze({ authMode:'placeholder', validated:true }); }}

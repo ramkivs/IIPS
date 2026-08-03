@@ -1,0 +1,1 @@
+export class ReadinessReplayAdapter{ replay(snapshot){ const m=snapshot.inputs.readinessManifest; return Object.freeze({ readinessId:m.readinessId, eligible:m.eligible, failedChecks:m.failedChecks, gateResults:m.gateResults, killSwitchState:m.killSwitchState }); }}

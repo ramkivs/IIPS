@@ -1,0 +1,3 @@
+import { ExposureDimension, assertNoExecutionLogic } from '../contracts/index.js';
+export class PortfolioExposureCalculator{ calculate({ holdings=[], dimension }){ if(!Object.values(ExposureDimension).includes(dimension)) throw new Error('Invalid exposure dimension'); const map=new Map(); for(const h of holdings){ const key=h[`${dimension}Id`]||h[dimension]||h.securityId; const value=h.weight??h.quantity??0; map.set(key,(map.get(key)||0)+value); } const exposures=[...map.entries()].map(([key,value])=>Object.freeze({ dimension, key, value })); assertNoExecutionLogic(exposures,'portfolio exposure'); return Object.freeze({ dimension, exposures:Object.freeze(exposures), calculatedAt:new Date().toISOString() }); }}
+export const PortfolioExposureModel=Object.freeze({});

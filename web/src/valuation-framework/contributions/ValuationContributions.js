@@ -1,0 +1,5 @@
+import { VALUATION_FRAMEWORK_FEATURE_FLAG } from '../contracts/index.js';
+export class ValuationContributionRegistry { constructor({ featureFlagRegistry, permissionGate }={}){ this.featureFlagRegistry=featureFlagRegistry; this.permissionGate=permissionGate; this.items=[]; } register(c){ const record=Object.freeze({ featureFlag:VALUATION_FRAMEWORK_FEATURE_FLAG, ...c }); this.items.push(record); return record; } execute(id){ const c=this.items.find(x=>x.contributionId===id); if(!c) throw new Error(`Contribution not found: ${id}`); const flag=this.featureFlagRegistry?.get?.(c.featureFlag); if(!flag||!flag.default_enabled||flag.status!=='active') return Object.freeze({ status:'blocked' }); this.permissionGate?.require?.(c.permission); return Object.freeze({ status:'executed', contributionId:id }); }}
+export const ValuationCommandContributions=Object.freeze(['register-valuation-model','run-valuation-dry-run','run-valuation-validation']);
+export const ValuationActivityContributions=Object.freeze(['valuation-framework-activity']);
+export const ValuationNotificationContributions=Object.freeze(['valuation-validation-notification']);

@@ -1,0 +1,5 @@
+import { VALUATION_PLUGIN_FEATURE_FLAG } from '../contracts/index.js';
+export class ValuationPluginContributionRegistry { constructor({ featureFlagRegistry, permissionGate }={}){ this.featureFlagRegistry=featureFlagRegistry; this.permissionGate=permissionGate; this.items=[]; } register(c){ const record=Object.freeze({ featureFlag:VALUATION_PLUGIN_FEATURE_FLAG, ...c }); this.items.push(record); return record; } execute(id){ const c=this.items.find(x=>x.contributionId===id); if(!c) throw new Error(`Contribution not found: ${id}`); const flag=this.featureFlagRegistry?.get?.(c.featureFlag); if(!flag||!flag.default_enabled||flag.status!=='active') return Object.freeze({ status:'blocked' }); this.permissionGate?.require?.(c.permission); return Object.freeze({ status:'executed', contributionId:id }); }}
+export const ValuationPluginCommandContributions=Object.freeze(['register-valuation-plugin','load-valuation-plugin','run-valuation-plugin-validation']);
+export const ValuationPluginActivityContributions=Object.freeze(['valuation-plugin-activity']);
+export const ValuationPluginNotificationContributions=Object.freeze(['valuation-plugin-notification']);

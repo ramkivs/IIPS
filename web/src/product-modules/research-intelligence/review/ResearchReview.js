@@ -1,0 +1,16 @@
+import { createOpaqueId } from '../../../../../../packages/shared-types/src/index.js';
+import { ResearchReviewStatus, assertNoInvestmentAnalysis } from '../contracts/index.js';
+export const AllowedReviewProcessDecisions = Object.freeze(['accept-document-structure','request-revision','mark-review-complete','cancel-review']);
+const forbiddenReviewDecisions = Object.freeze(['approve-investment','reject-investment','recommend-buy','recommend-sell','assign-rating']);
+export class ResearchReviewLifecycle { transition(from,to){ const allowed={ NotStarted:['InProgress','Cancelled'], InProgress:['Submitted','Cancelled'], Submitted:['Returned','Completed'], Returned:['Submitted','Cancelled'], Completed:[], Cancelled:[] }; if(!(allowed[from]||[]).includes(to)) throw new Error(`Invalid review transition: ${from} -> ${to}`); return to; } }
+export class ResearchReviewRegistry { constructor({ diagnostics }={}){ this.reviews=new Map(); this.lifecycle=new ResearchReviewLifecycle(); this.diagnostics=diagnostics; }
+  start({ researchDocumentId, workflowInstanceId, reviewerUserId, ResearchReviewPolicyVersion='1.0.0' }={}){ const now=new Date().toISOString(); const r=deepFreeze({ researchReviewId:createOpaqueId('RREV'), researchDocumentId, workflowInstanceId, reviewerUserId, ResearchReviewPolicyVersion, status:ResearchReviewStatus.InProgress, decisions:Object.freeze([]), createdAt:now, updatedAt:now }); this.reviews.set(r.researchReviewId,r); this.diagnostics?.record?.('researchIntelligence.review.started', { researchReviewId:r.researchReviewId }); return r; }
+  submit(id){ return this.#transition(id, ResearchReviewStatus.Submitted); } returnForRevision(id){ return this.#decision(id, 'request-revision', ResearchReviewStatus.Returned); } complete(id){ return this.#decision(id, 'mark-review-complete', ResearchReviewStatus.Completed); }
+  recordDecision(id, decision){ if(forbiddenReviewDecisions.includes(decision)) throw new Error(`Forbidden investment review decision: ${decision}`); if(!AllowedReviewProcessDecisions.includes(decision)) throw new Error(`Unsupported review-process decision: ${decision}`); const r=this.get(id); const next=deepFreeze({ ...r, decisions:Object.freeze([...r.decisions, { decision, at:new Date().toISOString() }]), updatedAt:new Date().toISOString() }); this.reviews.set(id,next); return next; }
+  #decision(id, decision, status){ this.recordDecision(id, decision); return this.#transition(id,status); }
+  #transition(id,status){ const r=this.get(id); const nextStatus=this.lifecycle.transition(r.status,status); const next=deepFreeze({ ...r, status:nextStatus, updatedAt:new Date().toISOString() }); this.reviews.set(id,next); return next; }
+  get(id){ const r=this.reviews.get(id); if(!r) throw new Error(`Research review not found: ${id}`); return r; }}
+export class ResearchReviewerAssignment { constructor({ reviewerUserId, role='ResearchReviewer' }){ return Object.freeze({ reviewerUserId, role }); } }
+export const ResearchReview = Object.freeze({});
+export const ResearchReviewDecisionRecord = Object.freeze({});
+function deepFreeze(obj){ Object.freeze(obj); for(const v of Object.values(obj)) if(v&&typeof v==='object'&&!Object.isFrozen(v)) deepFreeze(v); return obj; }

@@ -1,0 +1,5 @@
+import { COMPANY_SECURITY_FEATURE_FLAG } from '../contracts/index.js';
+export class CompanySecurityContributionRegistry { constructor({ featureFlagRegistry, permissionGate }={}){ this.featureFlagRegistry=featureFlagRegistry; this.permissionGate=permissionGate; this.items=[]; } register(c){ const record=Object.freeze({ featureFlag:COMPANY_SECURITY_FEATURE_FLAG, ...c }); this.items.push(record); return record; } execute(id){ const c=this.items.find(x=>x.contributionId===id); if(!c) throw new Error(`Contribution not found: ${id}`); const flag=this.featureFlagRegistry?.get?.(c.featureFlag); if(!flag||!flag.default_enabled||flag.status!=='active') return Object.freeze({ status:'blocked' }); this.permissionGate?.require?.(c.permission); return Object.freeze({ status:'executed', contributionId:id }); }}
+export const CompanySecurityCommandContributions=Object.freeze(['register-company','register-security','register-listing','map-identifier']);
+export const CompanySecurityActivityContributions=Object.freeze(['company-security-domain-activity']);
+export const CompanySecurityNotificationContributions=Object.freeze(['company-security-domain-notification']);

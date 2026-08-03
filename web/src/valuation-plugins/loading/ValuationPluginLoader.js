@@ -1,0 +1,3 @@
+import { ValuationPluginManifestValidator } from '../manifest/index.js';
+export class ValuationPluginModuleHandle { constructor({ manifest }){ return Object.freeze({ valuationPluginId:manifest.valuationPluginId, valuationPluginVersion:manifest.valuationPluginVersion, loadedAt:new Date().toISOString(), manifest }); } }
+export class ValuationPluginLoader { constructor({ compatibilityValidator }){ this.validator=new ValuationPluginManifestValidator(); this.compatibilityValidator=compatibilityValidator; } load(manifest){ this.validator.validate(manifest); const result=this.compatibilityValidator?.validate?.(manifest); if(result && result.status!=='Compatible') throw new Error(result.errors.join('; ')); return new ValuationPluginModuleHandle({ manifest }); }}

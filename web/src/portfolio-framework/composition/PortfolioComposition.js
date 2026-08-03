@@ -1,0 +1,3 @@
+import { assertNoExecutionLogic } from '../contracts/index.js';
+export class PortfolioCompositionReadModel{ create({ portfolio, holdings=[], allocations=[], exposures=[] }){ const model=Object.freeze({ portfolioId:portfolio.portfolioId, holdings:Object.freeze(holdings.slice()), allocations:Object.freeze(allocations.slice()), exposures:Object.freeze(exposures.slice()), projectedAt:new Date().toISOString() }); assertNoExecutionLogic(model,'portfolio composition'); return model; }}
+export class PortfolioCompositionProjector{ project(input){ return new PortfolioCompositionReadModel().create(input); }}

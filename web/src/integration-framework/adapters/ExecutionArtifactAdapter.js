@@ -1,0 +1,3 @@
+import { assertNoLiveIntegration } from '../contracts/index.js';
+export class ExecutionArtifactIntegrationAdapter{ adapt(artifact){ if(!artifact?.executionArtifactId||!artifact?.executionSchemaVersion) throw new Error('execution artifact is required'); assertNoLiveIntegration(artifact,'execution artifact input'); return Object.freeze({ executionArtifactId:artifact.executionArtifactId, executionSchemaVersion:artifact.executionSchemaVersion, executionPlanId:artifact.executionPlanId, instructions:artifact.instructions||[] }); } rejectRawPortfolioProposal(){ throw new Error('Raw portfolio proposals are not integration inputs'); }}
+export const ExecutionArtifactReference=Object.freeze({}); export const ExecutionInstructionReference=Object.freeze({});

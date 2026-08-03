@@ -1,0 +1,5 @@
+import { KillSwitchScope } from '../contracts/index.js';
+export class KillSwitchRegistry{ constructor(){ this.switches=[]; } activate({ scope, target='*', reason='emergency-disable' }){ if(!Object.values(KillSwitchScope).includes(scope)) throw new Error('Invalid kill switch scope'); const sw=Object.freeze({ scope, target, active:true, reason, activatedAt:new Date().toISOString() }); this.switches.push(sw); return sw; } release({ scope, target='*' }){ const sw=this.switches.find(s=>s.scope===scope&&s.target===target&&s.active); if(!sw) return null; const released=Object.freeze({ ...sw, active:false, releasedAt:new Date().toISOString() }); this.switches.push(released); return released; } active(){ return Object.freeze(this.switches.filter(s=>s.active)); }}
+export class KillSwitchEvaluator{ isClear(registry){ return registry.active().length===0; }}
+export class EmergencyDisablePolicy{ blocks(registry){ return !new KillSwitchEvaluator().isClear(registry); }}
+export const KillSwitch=Object.freeze({});

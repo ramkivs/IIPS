@@ -1,0 +1,21 @@
+import { FlagStatus } from '../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../packages/snapshot-engine/src/index.js';
+import { INTEGRATION_FEATURE_FLAG } from './contracts/index.js';
+import { ProviderAdapterRegistry, ProviderCapabilityRegistry } from './providers/index.js';
+import { ProviderCompatibilityValidator } from './compatibility/index.js';
+import { ProviderStateMachine, RequestStateMachine } from './lifecycle/index.js';
+import { TransportRegistry, TransportCompatibilityPolicy } from './transport/index.js';
+import { ExecutionArtifactIntegrationAdapter } from './adapters/index.js';
+import { RequestEnvelopeBuilder } from './requests/index.js';
+import { SimulatedBrokerAdapter, SimulatedExchangeAdapter } from './simulation/index.js';
+import { AuthenticationContractPlaceholder } from './auth/index.js';
+import { RetryPolicy, FailurePolicy } from './policies/index.js';
+import { IntegrationArtifactRegistry } from './artifacts/index.js';
+import { IntegrationAuditTrail } from './audit/index.js';
+import { IntegrationSnapshotAdapter } from './snapshots/index.js';
+import { IntegrationReplayAdapter } from './replay/index.js';
+import { IntegrationPermissionRegistry, IntegrationPermissionGate, registerDefaultIntegrationPermissions } from './permissions/index.js';
+import { IntegrationDiagnostics } from './diagnostics/index.js';
+import { IntegrationProjectionRegistry } from './projections/index.js';
+import { IntegrationHarness } from './testing/index.js';
+export function createIntegrationFramework({ app }={}){ const c=app.container; const flags=c.resolve('featureFlagRegistry'); if(!flags.get(INTEGRATION_FEATURE_FLAG)) flags.register({ flag_id:INTEGRATION_FEATURE_FLAG, default_enabled:true, owner:'integration-framework', status:FlagStatus.active }); const providerRegistry=new ProviderAdapterRegistry(); const capabilityRegistry=new ProviderCapabilityRegistry(); const compatibilityValidator=new ProviderCompatibilityValidator(); const providerStateMachine=new ProviderStateMachine(); const requestStateMachine=new RequestStateMachine(); const transportRegistry=new TransportRegistry(); transportRegistry.register('SimulationOnly'); const transportPolicy=new TransportCompatibilityPolicy(); const executionAdapter=new ExecutionArtifactIntegrationAdapter(); const requestBuilder=new RequestEnvelopeBuilder(); const simulatedBroker=new SimulatedBrokerAdapter(); const simulatedExchange=new SimulatedExchangeAdapter(); const authPlaceholder=new AuthenticationContractPlaceholder(); const retryPolicy=new RetryPolicy(); const failurePolicy=new FailurePolicy(); const artifactRegistry=new IntegrationArtifactRegistry(); const auditTrail=new IntegrationAuditTrail(); const snapshotStore=new InMemorySnapshotStore(); const snapshotAdapter=new IntegrationSnapshotAdapter({ snapshotStore }); const replayAdapter=new IntegrationReplayAdapter(); const permissionRegistry=registerDefaultIntegrationPermissions(new IntegrationPermissionRegistry()); const permissionGate=new IntegrationPermissionGate({ registry:permissionRegistry }); const diagnostics=new IntegrationDiagnostics({ diagnostics:c.resolve('diagnostics') }); const projectionRegistry=new IntegrationProjectionRegistry().registerDefaults(); const runtime=Object.freeze({ providerRegistry, capabilityRegistry, compatibilityValidator, providerStateMachine, requestStateMachine, transportRegistry, transportPolicy, executionAdapter, requestBuilder, simulatedBroker, simulatedExchange, authPlaceholder, retryPolicy, failurePolicy, artifactRegistry, auditTrail, snapshotStore, snapshotAdapter, replayAdapter, permissionRegistry, permissionGate, diagnostics, projectionRegistry }); const integrationTestHarness=new IntegrationHarness({ runtime }); const full=Object.freeze({ ...runtime, integrationTestHarness }); for(const [key,value] of Object.entries(full)) if(!c.has(key)) c.register(key,value); return full; }

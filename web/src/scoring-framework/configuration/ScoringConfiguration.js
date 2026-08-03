@@ -1,0 +1,5 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { assertNoRecommendationLogic } from '../contracts/index.js';
+export class ScoringConfigurationRegistry { constructor(){ this.items=new Map(); } register({ scoringModelId, scoringModelVersion, configurationVersion='1.0.0', componentWeights={} }){ const c=deepFreeze({ scoringConfigurationId:createOpaqueId('SCFG'), scoringModelId, scoringModelVersion, configurationVersion, componentWeights, createdAt:new Date().toISOString() }); assertNoRecommendationLogic(c,'scoring configuration'); const key=`${scoringModelId}@${scoringModelVersion}:${configurationVersion}`; if(this.items.has(key)) throw new Error(`Scoring configuration exists: ${key}`); this.items.set(key,c); return c; }}
+export const ScoringConfiguration=Object.freeze({}); export const ScoringConfigurationValidator=Object.freeze({});
+function deepFreeze(o){ Object.freeze(o); for(const v of Object.values(o)) if(v&&typeof v==='object'&&!Object.isFrozen(v)) deepFreeze(v); return o; }

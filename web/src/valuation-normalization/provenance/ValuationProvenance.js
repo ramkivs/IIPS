@@ -1,0 +1,3 @@
+import { assertNoInvestmentDecision } from '../contracts/index.js';
+export class ValuationArtifactProvenanceLink { constructor({ sourceType, sourceArtifactId, sourceArtifactChecksum, assumptionReference=null, evidenceReference=[], methodologyReference=null }){ const link=Object.freeze({ sourceType, sourceArtifactId, sourceArtifactChecksum, assumptionReference, evidenceReference:Object.freeze(evidenceReference||[]), methodologyReference }); assertNoInvestmentDecision(link,'Valuation provenance'); return link; }}
+export class ValuationResultProvenance { constructor({ links=[] }){ return Object.freeze({ links:Object.freeze(links.slice()) }); }}

@@ -1,0 +1,1 @@
+export class ValuationResultReplayAdapter { replay(snapshot){ const m=snapshot.inputs.normalizationManifest; return Object.freeze({ valuationResultId:m.valuationResultId, contributions:m.contributions, comparison:m.comparison, provenance:m.provenance, confidence:m.confidence }); }}

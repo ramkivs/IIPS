@@ -1,0 +1,18 @@
+import { FlagStatus } from '../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../packages/snapshot-engine/src/index.js';
+import { LIVE_READINESS_FEATURE_FLAG } from './contracts/index.js';
+import { ReadinessDecisionRegistry, ReadinessDecisionVersionRegistry } from './readiness/index.js';
+import { IntegrationArtifactReadinessAdapter, ExecutionArtifactReadinessAdapter, ReadinessInputPackage } from './adapters/index.js';
+import { ReadinessCheckRegistry, ReadinessValidationPipeline } from './checks/index.js';
+import { ReadinessGateRegistry, ReadinessGateEvaluator } from './gates/index.js';
+import { AuthorizationWorkflow, AuthorizationRecord } from './authorization/index.js';
+import { TransmissionApprovalRegistry } from './approvals/index.js';
+import { KillSwitchRegistry, KillSwitchEvaluator, EmergencyDisablePolicy } from './killswitch/index.js';
+import { ReadinessAuditTrail } from './audit/index.js';
+import { ReadinessSnapshotAdapter } from './snapshots/index.js';
+import { ReadinessReplayAdapter } from './replay/index.js';
+import { ReadinessPermissionRegistry, ReadinessPermissionGate, registerDefaultReadinessPermissions } from './permissions/index.js';
+import { ReadinessDiagnostics } from './diagnostics/index.js';
+import { ReadinessProjectionRegistry } from './projections/index.js';
+import { ReadinessIntegrationHarness } from './testing/index.js';
+export function createLiveReadiness({ app }={}){ const c=app.container; const flags=c.resolve('featureFlagRegistry'); if(!flags.get(LIVE_READINESS_FEATURE_FLAG)) flags.register({ flag_id:LIVE_READINESS_FEATURE_FLAG, default_enabled:true, owner:'live-readiness', status:FlagStatus.active }); const readinessRegistry=new ReadinessDecisionRegistry(); const readinessVersionRegistry=new ReadinessDecisionVersionRegistry(); const integrationAdapter=new IntegrationArtifactReadinessAdapter(); const executionAdapter=new ExecutionArtifactReadinessAdapter(); const checkRegistry=new ReadinessCheckRegistry().defaults(); const validationPipeline=new ReadinessValidationPipeline({ checks:checkRegistry.checks }); const gateRegistry=new ReadinessGateRegistry(); const gateEvaluator=new ReadinessGateEvaluator(); const authorizationWorkflow=new AuthorizationWorkflow(); const approvalRegistry=new TransmissionApprovalRegistry(); const killSwitchRegistry=new KillSwitchRegistry(); const killSwitchEvaluator=new KillSwitchEvaluator(); const emergencyDisablePolicy=new EmergencyDisablePolicy(); const auditTrail=new ReadinessAuditTrail(); const snapshotStore=new InMemorySnapshotStore(); const snapshotAdapter=new ReadinessSnapshotAdapter({ snapshotStore }); const replayAdapter=new ReadinessReplayAdapter(); const permissionRegistry=registerDefaultReadinessPermissions(new ReadinessPermissionRegistry()); const permissionGate=new ReadinessPermissionGate({ registry:permissionRegistry }); const diagnostics=new ReadinessDiagnostics({ diagnostics:c.resolve('diagnostics') }); const projectionRegistry=new ReadinessProjectionRegistry().registerDefaults(); const runtime=Object.freeze({ readinessRegistry, readinessVersionRegistry, integrationAdapter, executionAdapter, ReadinessInputPackage, checkRegistry, validationPipeline, gateRegistry, gateEvaluator, authorizationWorkflow, AuthorizationRecord, approvalRegistry, killSwitchRegistry, killSwitchEvaluator, emergencyDisablePolicy, auditTrail, snapshotStore, snapshotAdapter, replayAdapter, permissionRegistry, permissionGate, diagnostics, projectionRegistry }); const readinessTestHarness=new ReadinessIntegrationHarness({ runtime }); const full=Object.freeze({ ...runtime, readinessTestHarness }); for(const [key,value] of Object.entries(full)) if(!c.has(key)) c.register(key,value); return full; }

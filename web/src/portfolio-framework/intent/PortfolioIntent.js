@@ -1,0 +1,4 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { PortfolioIntentStatus, PortfolioIntentType, assertRequired, assertNoExecutionLogic } from '../contracts/index.js';
+export class PortfolioIntentRegistry{ constructor(){ this.items=[]; } create(input){ const intent=Object.freeze({ portfolioIntentId:createOpaqueId('PINT'), status:PortfolioIntentStatus.Active, createdAt:new Date().toISOString(), ...input }); assertRequired(intent,['portfolioIntentId','portfolioId','decisionArtifactId','intentType','subjectType','subjectId','status'],'portfolioIntent'); if(!Object.values(PortfolioIntentType).includes(intent.intentType)) throw new Error('Invalid portfolio intent type'); assertNoExecutionLogic(intent,'portfolio intent'); this.items.push(intent); return intent; }}
+export const PortfolioIntent=Object.freeze({}); export const PortfolioIntentValidator=Object.freeze({});

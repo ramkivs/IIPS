@@ -1,0 +1,24 @@
+import { FlagStatus } from '../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../packages/snapshot-engine/src/index.js';
+import { PORTFOLIO_FRAMEWORK_FEATURE_FLAG } from './contracts/index.js';
+import { PortfolioRegistry } from './portfolio/index.js';
+import { PortfolioVersionRegistry } from './registry/index.js';
+import { PortfolioLifecycleManager } from './lifecycle/index.js';
+import { PortfolioAccountRegistry } from './accounts/index.js';
+import { HoldingRegistry } from './holdings/index.js';
+import { AllocationRegistry } from './allocations/index.js';
+import { DecisionArtifactPortfolioAdapter } from './inputs/index.js';
+import { PortfolioIntentRegistry } from './intent/index.js';
+import { PortfolioPolicyRegistry } from './policies/index.js';
+import { PortfolioConstraintRegistry, PortfolioConstraintEvaluator } from './constraints/index.js';
+import { PortfolioExposureCalculator } from './exposure/index.js';
+import { PortfolioCompositionReadModel } from './composition/index.js';
+import { PortfolioChangeProposalRegistry } from './proposals/index.js';
+import { PortfolioAuditTrail } from './audit/index.js';
+import { PortfolioSnapshotAdapter } from './snapshots/index.js';
+import { PortfolioReplayAdapter } from './replay/index.js';
+import { PortfolioPermissionRegistry, PortfolioPermissionGate, registerDefaultPortfolioPermissions } from './permissions/index.js';
+import { PortfolioDiagnostics } from './diagnostics/index.js';
+import { PortfolioProjectionRegistry } from './projections/index.js';
+import { PortfolioIntegrationHarness } from './testing/index.js';
+export function createPortfolioFramework({ app }={}){ const c=app.container; const flags=c.resolve('featureFlagRegistry'); if(!flags.get(PORTFOLIO_FRAMEWORK_FEATURE_FLAG)) flags.register({ flag_id:PORTFOLIO_FRAMEWORK_FEATURE_FLAG, default_enabled:true, owner:'portfolio-framework', status:FlagStatus.active }); const portfolioRegistry=new PortfolioRegistry(); const versionRegistry=new PortfolioVersionRegistry(); const lifecycleManager=new PortfolioLifecycleManager(); const accountRegistry=new PortfolioAccountRegistry({ portfolioRegistry }); const holdingRegistry=new HoldingRegistry(); const allocationRegistry=new AllocationRegistry(); const decisionAdapter=new DecisionArtifactPortfolioAdapter(); const intentRegistry=new PortfolioIntentRegistry(); const policyRegistry=new PortfolioPolicyRegistry(); const constraintRegistry=new PortfolioConstraintRegistry(); const constraintEvaluator=new PortfolioConstraintEvaluator(); const exposureCalculator=new PortfolioExposureCalculator(); const compositionReadModel=new PortfolioCompositionReadModel(); const proposalRegistry=new PortfolioChangeProposalRegistry(); const auditTrail=new PortfolioAuditTrail(); const snapshotStore=new InMemorySnapshotStore(); const snapshotAdapter=new PortfolioSnapshotAdapter({ snapshotStore }); const replayAdapter=new PortfolioReplayAdapter(); const permissionRegistry=registerDefaultPortfolioPermissions(new PortfolioPermissionRegistry()); const permissionGate=new PortfolioPermissionGate({ registry:permissionRegistry }); const diagnostics=new PortfolioDiagnostics({ diagnostics:c.resolve('diagnostics') }); const projectionRegistry=new PortfolioProjectionRegistry().registerDefaults(); const runtime=Object.freeze({ portfolioRegistry, versionRegistry, lifecycleManager, accountRegistry, holdingRegistry, allocationRegistry, decisionAdapter, intentRegistry, policyRegistry, constraintRegistry, constraintEvaluator, exposureCalculator, compositionReadModel, proposalRegistry, auditTrail, snapshotStore, snapshotAdapter, replayAdapter, permissionRegistry, permissionGate, diagnostics, projectionRegistry }); const portfolioTestHarness=new PortfolioIntegrationHarness({ runtime }); const full=Object.freeze({ ...runtime, portfolioTestHarness }); for(const [key,value] of Object.entries(full)) if(!c.has(key)) c.register(key,value); return full; }

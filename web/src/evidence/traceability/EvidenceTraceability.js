@@ -1,0 +1,7 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { EvidenceTraceLinkType, assertNoInvestmentAnalysis } from '../contracts/index.js';
+export class EvidenceTraceValidator { validate(link){ if(!Object.values(EvidenceTraceLinkType).includes(link.linkType)) throw new Error(`Invalid trace link type: ${link.linkType}`); if(!link.fromId||!link.toId) throw new Error('Trace fromId and toId are required'); if(!link.createdBy||!link.relationshipReason) throw new Error('Trace relationship metadata is required'); assertNoInvestmentAnalysis({ linkType: link.linkType, relationshipReason: link.relationshipReason },'Evidence trace link'); return true; }}
+export class EvidenceTraceabilityGraph { constructor({ diagnostics }={}){ this.links=[]; this.validator=new EvidenceTraceValidator(); this.diagnostics=diagnostics; }
+  link({ linkType, fromId, toId, createdBy='system', relationshipReason }={}){ const l=Object.freeze({ traceLinkId:createOpaqueId('ETRC'), linkType, fromId, toId, relationshipCreatedAt:new Date().toISOString(), createdBy, relationshipReason }); this.validator.validate(l); this.links.push(l); this.diagnostics?.record?.('evidence.trace.linked',{ traceLinkId:l.traceLinkId }); return l; }
+  upstream(id){ return Object.freeze(this.links.filter(l=>l.toId===id)); } downstream(id){ return Object.freeze(this.links.filter(l=>l.fromId===id)); }}
+export const EvidenceTraceLink = Object.freeze({}); export const EvidenceTraceQuery = Object.freeze({});

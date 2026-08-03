@@ -1,0 +1,1 @@
+export class PortfolioVersionRegistry{ constructor(){ this.versions=new Map(); } add(p){ const list=this.versions.get(p.portfolioId)||[]; list.push(p.portfolioVersion); this.versions.set(p.portfolioId,Object.freeze([...new Set(list)])); return this.versions.get(p.portfolioId); }}

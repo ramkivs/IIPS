@@ -1,0 +1,5 @@
+import { EVIDENCE_FEATURE_FLAG } from '../contracts/index.js';
+export class EvidenceContributionRegistry { constructor({ featureFlagRegistry, permissionGate }={}){ this.featureFlagRegistry=featureFlagRegistry; this.permissionGate=permissionGate; this.contributions=[]; } register(c){ const record=Object.freeze({ featureFlag:EVIDENCE_FEATURE_FLAG, ...c }); this.contributions.push(record); return record; } execute(id){ const c=this.contributions.find(x=>x.contributionId===id); if(!c) throw new Error(`Contribution not found: ${id}`); const flag=this.featureFlagRegistry?.get?.(c.featureFlag); if(!flag||!flag.default_enabled||flag.status!=='active') return Object.freeze({ status:'blocked' }); this.permissionGate?.require?.(c.permission); return Object.freeze({ status:'executed', contributionId:id }); }}
+export const EvidenceCommandContributions = Object.freeze(['create-evidence-record','submit-evidence-review','certify-evidence']);
+export const EvidenceNotificationContributions = Object.freeze(['evidence-certified-notification']);
+export const EvidenceActivityContributions = Object.freeze(['evidence-governance-activity']);

@@ -1,0 +1,1 @@
+export class MethodologyReplayAdapter { replay(snapshot){ const m=snapshot.inputs.methodologyManifest; return Object.freeze({ methodologyId:m.methodologyId, methodologyVersion:m.methodologyVersion, executionId:m.executionId, validationResult:m.validationResult, sufficiencyResult:m.sufficiencyResult, executionFingerprint:m.executionFingerprint }); }}

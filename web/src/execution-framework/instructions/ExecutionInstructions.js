@@ -1,0 +1,5 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { assertRequired, assertNoExternalExecution } from '../contracts/index.js';
+export class ExecutionInstructionValidator{ validate(i){ assertRequired(i,['executionInstructionId','executionPlanId','instructionType','subjectType','subjectId','status','createdAt'],'executionInstruction'); for(const f of ['orderType','orderKind','broker','venue','FIXMsg','pathInstruction','settleInstruction','txInstruction']) if(i[f]!==undefined) throw new Error(`Forbidden instruction field: ${f}`); assertNoExternalExecution(i,'execution instruction'); return true; }}
+export class ExecutionInstructionRegistry{ constructor(){ this.items=[]; this.validator=new ExecutionInstructionValidator(); } create(input){ const i=Object.freeze({ executionInstructionId:createOpaqueId('EINS'), status:'Draft', createdAt:new Date().toISOString(), ...input }); this.validator.validate(i); this.items.push(i); return i; }}
+export const ExecutionInstruction=Object.freeze({});

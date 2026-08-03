@@ -1,0 +1,5 @@
+import { assertRequired, assertNoExternalExecution } from '../contracts/index.js';
+export class ExecutionArtifactValidator{ validate(a){ assertRequired(a,['executionArtifactId','executionSchemaVersion','executionPlanId','executionPlanVersion','executionIntentId','instructions','policies','constraints','status','createdAt','extensions'],'executionArtifact'); assertNoExternalExecution(a,'execution artifact'); return true; }}
+export class ExecutionArtifactRegistry{ constructor(){ this.items=new Map(); this.validator=new ExecutionArtifactValidator(); } create(input){ const a=Object.freeze({ status:'Created', extensions:{}, ...input }); this.validator.validate(a); this.items.set(a.executionArtifactId,a); return a; }}
+export class ExecutionArtifactVersionRegistry{ constructor(){ this.versions=new Map(); } createVersion(a){ const list=this.versions.get(a.executionArtifactId)||[]; const version=list.length+1; const rec=Object.freeze({ executionArtifactId:a.executionArtifactId, version, artifact:a }); list.push(rec); this.versions.set(a.executionArtifactId,list); return rec; }}
+export const ExecutionArtifact=Object.freeze({});

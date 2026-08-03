@@ -1,0 +1,4 @@
+import { DecisionLifecycleState } from '../contracts/index.js';
+const allowed={ Draft:['Registered','Failed'], Registered:['Validated','Failed'], Validated:['Active','Failed'], Active:['Deprecated','Retired','Failed'], Deprecated:['Retired'], Retired:[], Failed:[] };
+export class DecisionLifecycleManager { constructor(){ this.states=new Map(); } initialize(id){ this.states.set(id,DecisionLifecycleState.Draft); return this.status(id); } transition(id,to){ const from=this.states.get(id); if(!from) throw new Error(`Unknown decision lifecycle: ${id}`); if(!(allowed[from]||[]).includes(to)){ this.states.set(id,DecisionLifecycleState.Failed); throw new Error(`Invalid decision transition: ${from} -> ${to}`); } this.states.set(id,to); return this.status(id); } status(id){ return Object.freeze({ decisionModelId:id, state:this.states.get(id)||null }); }}
+export const DecisionLifecyclePolicy=Object.freeze({});

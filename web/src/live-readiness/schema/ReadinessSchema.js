@@ -1,0 +1,3 @@
+import { LIVE_ENABLEMENT_SCHEMA_VERSION, assertRequired, assertNoLiveReadinessLeak } from '../contracts/index.js';
+export class ReadinessSchema { static version=LIVE_ENABLEMENT_SCHEMA_VERSION; }
+export class TransmissionReadinessValidator{ validate(r){ assertRequired(r,['readinessId','schemaVersion','evaluationProfileId','evaluationProfileVersion','readinessPolicyVersion','integrationArtifactId','executionArtifactId','eligible','reasons','failedChecks','warnings','evaluatedAt'],'readiness'); if(typeof r.eligible!=='boolean') throw new Error('eligible must be boolean within structured artifact'); assertNoLiveReadinessLeak(r,'readiness artifact'); return true; }}

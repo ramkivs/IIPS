@@ -1,0 +1,8 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { MethodologyConfigurationScope, assertNoInvestmentAnalysis } from '../contracts/index.js';
+export class MethodologyConfigurationValidator { validate(config, schema={}){ if(!Object.values(MethodologyConfigurationScope).includes(config.scope)) throw new Error(`Invalid configuration scope: ${config.scope}`); for(const r of schema.required||[]) if(config.values?.[r]===undefined) throw new Error(`Missing configuration value: ${r}`); assertNoInvestmentAnalysis(config,'Methodology configuration'); return true; }}
+export class MethodologyConfigurationRegistry { constructor(){ this.configs=new Map(); this.validator=new MethodologyConfigurationValidator(); }
+  register({ methodologyId, methodologyVersion, configurationVersion='1.0.0', scope='global', values={}, schema={} }){ const config=deepFreeze({ configurationId:createOpaqueId('MCFG'), methodologyId, methodologyVersion, configurationVersion, scope, values, createdAt:new Date().toISOString() }); this.validator.validate(config,schema); const key=`${methodologyId}@${methodologyVersion}:${configurationVersion}`; if(this.configs.has(key)) throw new Error(`Configuration already registered: ${key}`); this.configs.set(key,config); return config; }
+  get(methodologyId,methodologyVersion,configurationVersion){ return this.configs.get(`${methodologyId}@${methodologyVersion}:${configurationVersion}`)||null; }}
+export const MethodologyConfiguration = Object.freeze({}); export const MethodologyConfigurationVersion = Object.freeze({});
+function deepFreeze(obj){ Object.freeze(obj); for(const v of Object.values(obj)) if(v&&typeof v==='object'&&!Object.isFrozen(v)) deepFreeze(v); return obj; }

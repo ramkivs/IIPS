@@ -1,0 +1,47 @@
+import { FlagStatus } from '../../../../../packages/feature-flags/src/index.js';
+import { InMemorySnapshotStore } from '../../../../../packages/snapshot-engine/src/index.js';
+import { COMPANY_SECURITY_FEATURE_FLAG } from './contracts/index.js';
+import { CompanyRegistry } from './company/index.js';
+import { SecurityRegistry } from './security/index.js';
+import { ExchangeRegistry, ListingRegistry } from './listings/index.js';
+import { IdentifierRegistry, IdentifierMappingService } from './identifiers/index.js';
+import { ClassificationRegistry } from './classification/index.js';
+import { CorporateActionRegistry } from './corporate-actions/index.js';
+import { CompanySecurityDomainValidator } from './validation/index.js';
+import { CompanySecurityPermissionRegistry, CompanySecurityPermissionGate, registerDefaultDomainPermissions } from './permissions/index.js';
+import { CompanySecurityContributionRegistry } from './contributions/index.js';
+import { CompanySecurityProjectionRegistry } from './projections/index.js';
+import { CompanySecuritySnapshotAdapter } from './snapshots/index.js';
+import { CompanySecurityDiagnostics } from './diagnostics/index.js';
+import { CompanySecurityIntegrationHarness } from './testing/index.js';
+
+export function createCompanySecurityDomainFoundation({ app }={}){
+  const c=app.container;
+  const flags=c.resolve('featureFlagRegistry');
+  if(!flags.get(COMPANY_SECURITY_FEATURE_FLAG)) flags.register({ flag_id:COMPANY_SECURITY_FEATURE_FLAG, default_enabled:true, owner:'company-security-domain', status:FlagStatus.active });
+  const diagnostics=new CompanySecurityDiagnostics({ diagnostics:c.resolve('diagnostics') });
+  const companyRegistry=new CompanyRegistry();
+  const securityRegistry=new SecurityRegistry({ companyRegistry });
+  const exchangeRegistry=new ExchangeRegistry();
+  const listingRegistry=new ListingRegistry({ securityRegistry, exchangeRegistry });
+  const identifierRegistry=new IdentifierRegistry();
+  const identifierMappingService=new IdentifierMappingService({ identifierRegistry });
+  const classificationRegistry=new ClassificationRegistry();
+  const corporateActionRegistry=new CorporateActionRegistry();
+  const domainValidator=new CompanySecurityDomainValidator();
+  const permissionRegistry=registerDefaultDomainPermissions(new CompanySecurityPermissionRegistry());
+  const permissionGate=new CompanySecurityPermissionGate({ registry:permissionRegistry });
+  const contributionRegistry=new CompanySecurityContributionRegistry({ featureFlagRegistry:flags, permissionGate });
+  contributionRegistry.register({ contributionId:'register-company', permission:'registerCompany' });
+  contributionRegistry.register({ contributionId:'register-security', permission:'registerSecurity' });
+  contributionRegistry.register({ contributionId:'register-listing', permission:'registerListing' });
+  contributionRegistry.register({ contributionId:'map-identifier', permission:'mapIdentifier' });
+  const projectionRegistry=new CompanySecurityProjectionRegistry().registerDefaults();
+  const snapshotStore=new InMemorySnapshotStore();
+  const snapshotAdapter=new CompanySecuritySnapshotAdapter({ snapshotStore });
+  const runtime=Object.freeze({ diagnostics, companyRegistry, securityRegistry, exchangeRegistry, listingRegistry, identifierRegistry, identifierMappingService, classificationRegistry, corporateActionRegistry, domainValidator, permissionRegistry, permissionGate, contributionRegistry, projectionRegistry, snapshotStore, snapshotAdapter });
+  const domainTestHarness=new CompanySecurityIntegrationHarness({ runtime });
+  const full=Object.freeze({ ...runtime, domainTestHarness });
+  for(const [key,value] of Object.entries(full)) if(!c.has(key)) c.register(key,value);
+  return full;
+}

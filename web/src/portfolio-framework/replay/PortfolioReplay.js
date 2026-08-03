@@ -1,0 +1,1 @@
+export class PortfolioReplayAdapter{ replay(snapshot){ const m=snapshot.inputs.portfolioManifest; return Object.freeze({ portfolioId:m.portfolioId, holdings:m.holdings, allocations:m.allocations, intents:m.intents, changeProposals:m.changeProposals, composition:m.composition }); }}

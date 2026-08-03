@@ -1,0 +1,4 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { assertRequired, assertNoExecutionLogic } from '../contracts/index.js';
+export class PortfolioAccountRegistry{ constructor({ portfolioRegistry }={}){ this.items=[]; this.portfolioRegistry=portfolioRegistry; } register(input){ this.portfolioRegistry?.get?.(input.portfolioId); const a=Object.freeze({ portfolioAccountId:createOpaqueId('PACC'), status:'Active', createdAt:new Date().toISOString(), ...input }); assertRequired(a,['portfolioAccountId','portfolioId','accountType','baseCurrency','status'],'portfolioAccount'); for(const f of ['broker','custody','cashMovement']) if(a[f]!==undefined) throw new Error(`Forbidden account field: ${f}`); assertNoExecutionLogic(a,'portfolio account'); this.items.push(a); return a; }}
+export const PortfolioAccount=Object.freeze({}); export const PortfolioContainer=Object.freeze({}); export const PortfolioAccountValidator=Object.freeze({});

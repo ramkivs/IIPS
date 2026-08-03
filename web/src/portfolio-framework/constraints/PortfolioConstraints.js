@@ -1,0 +1,5 @@
+import { createOpaqueId } from '../../../../../packages/shared-types/src/index.js';
+import { ConstraintSeverity, assertNoExecutionLogic } from '../contracts/index.js';
+export class PortfolioConstraintRegistry{ constructor(){ this.items=[]; } register(input){ const c=Object.freeze({ constraintId:createOpaqueId('PCON'), version:'1.0.0', severity:ConstraintSeverity.warning, ...input }); for (const f of ['executionAlgo','autoExecution','tradeInstruction','orderType']) if (c[f] !== undefined) throw new Error(`Forbidden constraint execution field: ${f}`); assertNoExecutionLogic(c,'portfolio constraint'); this.items.push(c); return c; }}
+export class PortfolioConstraintEvaluator{ evaluate({ constraint, holdings=[] }){ let status='PASS'; if(constraint.type==='max-weight-by-security'){ const breach=holdings.some(h=>(h.weight||0)>constraint.maxWeight); status=breach?'FAIL':'PASS'; } return Object.freeze({ constraintId:constraint.constraintId, status, severity:constraint.severity, evaluatedAt:new Date().toISOString() }); }}
+export const PortfolioConstraint=Object.freeze({});

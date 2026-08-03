@@ -1,0 +1,14 @@
+import { createOpaqueId } from '../../../../../../packages/shared-types/src/index.js';
+import { ResearchArtifactType, assertNoResearchIntelligence } from '../contracts/index.js';
+export const ResearchArtifactLifecycle = Object.freeze({ Registered:'Registered', Linked:'Linked', Archived:'Archived' });
+export class ResearchSourceReference { constructor({ sourceId, label, uri=null }={}){ if(!sourceId||!label) throw new Error('sourceId and label are required'); return Object.freeze({ sourceId, label, uri }); } }
+export class ResearchArtifactRegistry { constructor({ documentRegistry, diagnostics }={}){ this.artifacts=new Map(); this.documentRegistry=documentRegistry; this.diagnostics=diagnostics; }
+  register({ artifactType, title, description='', sourceReference=null, workflowInstanceId, documentId=null }={}){ if(!Object.values(ResearchArtifactType).includes(artifactType)) throw new Error(`Invalid artifact type: ${artifactType}`); assertNoResearchIntelligence({ artifactType, title, description, sourceReference }, 'Research artifact'); const now=new Date().toISOString(); const artifact=deepFreeze({ researchArtifactId:createOpaqueId('RART'), artifactType, title, description, sourceReference, workflowInstanceId, documentId, status:ResearchArtifactLifecycle.Registered, createdAt:now, updatedAt:now }); this.artifacts.set(artifact.researchArtifactId, artifact); this.diagnostics?.record?.('artifactRegisters', { researchArtifactId:artifact.researchArtifactId }); return artifact; }
+  link(artifactId, documentId){ const a=this.get(artifactId); const next=deepFreeze({ ...a, documentId, status:ResearchArtifactLifecycle.Linked, updatedAt:new Date().toISOString() }); this.artifacts.set(artifactId,next); this.documentRegistry?.linkArtifact?.(documentId, artifactId); this.diagnostics?.record?.('artifactLinks', { researchArtifactId:artifactId, researchDocumentId:documentId }); return next; }
+  archive(artifactId){ const a=this.get(artifactId); const next=deepFreeze({ ...a, status:ResearchArtifactLifecycle.Archived, updatedAt:new Date().toISOString() }); this.artifacts.set(artifactId,next); return next; }
+  get(id){ const a=this.artifacts.get(id); if(!a) throw new Error(`Research artifact not found: ${id}`); return a; }
+  byWorkflow(workflowInstanceId){ return Object.freeze([...this.artifacts.values()].filter(a=>a.workflowInstanceId===workflowInstanceId)); }
+  byDocument(documentId){ return Object.freeze([...this.artifacts.values()].filter(a=>a.documentId===documentId)); }}
+export class ResearchArtifactLinker { constructor({ artifactRegistry }){ this.artifactRegistry=artifactRegistry; } link(artifactId, documentId){ return this.artifactRegistry.link(artifactId, documentId); } }
+export const ResearchArtifact = Object.freeze({});
+function deepFreeze(obj){ Object.freeze(obj); for(const v of Object.values(obj)) if(v&&typeof v==='object'&&!Object.isFrozen(v)) deepFreeze(v); return obj; }

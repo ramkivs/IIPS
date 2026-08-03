@@ -1,0 +1,1 @@
+export class ScoreReplayAdapter { replay(snapshot){ const m=snapshot.inputs.scoreManifest; return Object.freeze({ scoreArtifactId:m.scoreArtifactId, scoringModelId:m.scoringModelId, scoringModelVersion:m.scoringModelVersion, componentIds:m.componentIds, aggregationTrace:m.aggregationTrace, aggregateScore:snapshot.outputs.aggregateScore }); }}

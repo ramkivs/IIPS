@@ -1,0 +1,2 @@
+import { createScoreArtifact, ScoreArtifactValidator } from '../schema/index.js';
+export class ScoreArtifactRegistry { constructor(){ this.items=new Map(); this.validator=new ScoreArtifactValidator(); } create(input){ const a=createScoreArtifact(input); this.items.set(a.scoreArtifactId,a); return a; } get(id){ const a=this.items.get(id); if(!a) throw new Error(`Score artifact not found: ${id}`); return a; }}

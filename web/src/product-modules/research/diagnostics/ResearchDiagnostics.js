@@ -1,0 +1,5 @@
+export class ResearchTelemetry { constructor(){ this.metrics={ workspaceMounts:0, documentCreates:0, artifactRegisters:0, artifactLinks:0, permissionDenials:0, projectionUpdates:0, failedCommands:0 }; } increment(metric){ if(!(metric in this.metrics)) throw new Error(`Unknown Research metric: ${metric}`); this.metrics[metric]+=1; return this.snapshot(); } snapshot(){ return Object.freeze({ ...this.metrics }); }}
+export class ResearchHealthReporter { constructor({ telemetry }){ this.telemetry=telemetry; } status(){ const m=this.telemetry.snapshot(); const status=m.failedCommands>0||m.permissionDenials>0?'Degraded':'Healthy'; return Object.freeze({ status, metrics:m }); }}
+export class ResearchDiagnostics { constructor({ diagnostics, telemetry=new ResearchTelemetry() }={}){ this.diagnostics=diagnostics; this.telemetry=telemetry; this.healthReporter=new ResearchHealthReporter({ telemetry }); }
+  record(metric, meta={}){ this.telemetry.increment(metric); this.diagnostics?.record?.(`research.${metric}`, meta); return this.telemetry.snapshot(); }
+  health(){ return this.healthReporter.status(); }}
