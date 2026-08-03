@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  root: 'apps/web',
+  root: 'web',
   plugins: [react()],
   test: {
     environment: 'jsdom',
